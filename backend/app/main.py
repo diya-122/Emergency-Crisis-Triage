@@ -2,6 +2,7 @@
 Emergency Crisis Triage & Resource Allocation System
 Main FastAPI Application
 """
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -11,103 +12,125 @@ from app.config import settings
 from app.database import db_manager
 from app.api.routes import router
 
-# Configure logging
+# -------------------------------------------------------------------
+# Logging Configuration
+# -------------------------------------------------------------------
+
 logging.basicConfig(
     level=logging.INFO if settings.debug else logging.WARNING,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
 
+# -------------------------------------------------------------------
+# Application Lifespan (DB OPTIONAL FOR DEMO)
+# -------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle management for FastAPI app"""
-    # Startup
+    """
+    Application lifecycle management.
+    Database is OPTIONAL for demo reliability.
+    """
+
     logger.info("Starting Emergency Crisis Triage System")
+
+    # Try DB connection (do NOT crash if unavailable)
     try:
         await db_manager.connect()
         logger.info("Database connected successfully")
     except Exception as e:
-        logger.error(f"Failed to connect to database: {e}")
-        raise
-    
+        logger.warning(
+            f"Database not available. Running in demo mode. Reason: {e}"
+        )
+
     yield
-    
-    # Shutdown
+
     logger.info("Shutting down Emergency Crisis Triage System")
-    await db_manager.disconnect()
+
+    try:
+        await db_manager.disconnect()
+    except Exception:
+        pass
 
 
-# Create FastAPI app
+# -------------------------------------------------------------------
+# FastAPI App Initialization
+# -------------------------------------------------------------------
+
 app = FastAPI(
     title="Emergency Crisis Triage & Resource Allocation System",
     description="""
-    AI-powered decision support system for emergency response coordinators.
-    
-    ## Features
-    
-    * **Intelligent Message Processing**: Extract structured information from unstructured crisis messages
-    * **Explainable Urgency Scoring**: Transparent urgency classification with detailed reasoning
-    * **Smart Resource Matching**: Multi-factor matching algorithm (suitability, availability, capacity, distance)
-    * **Human-in-the-Loop**: All critical decisions require human confirmation
-    * **Real-time Dashboard**: Monitor requests, resources, and performance metrics
-    
-    ## Safety & Ethics
-    
-    * Human dispatchers maintain final decision authority
-    * All urgency scores include detailed explanations
-    * System tracks human overrides for continuous learning
-    * Designed for fairness, transparency, and accountability
-    
-    ## Workflow
-    
-    1. **Receive** unstructured emergency message
-    2. **Extract** structured information using LLM
-    3. **Calculate** explainable urgency score
-    4. **Match** to available resources with trade-off analysis
-    5. **Present** recommendations to dispatcher
-    6. **Confirm** human decision and dispatch
-    
-    **Goal**: Reduce triage time by 40% while maintaining safety and transparency.
-    """,
+AI-powered decision support system for emergency response coordinators.
+
+### Core Capabilities
+- Intelligent extraction from unstructured emergency messages
+- Explainable urgency scoring with transparent reasoning
+- Capability-aware resource matching
+- Human-in-the-loop decision support
+
+### Safety & Responsibility
+- Human dispatchers retain final authority
+- All urgency scores include explanations
+- Designed for fairness, transparency, and auditability
+
+### Demo Note
+Database connectivity is optional for demo reliability.
+""",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# Configure CORS
+# -------------------------------------------------------------------
+# CORS Configuration (Required for Netlify frontend)
+# -------------------------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],  # Restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routes
-app.include_router(router, prefix="/api/v1", tags=["Emergency Triage"])
+# -------------------------------------------------------------------
+# API Routes
+# -------------------------------------------------------------------
 
+app.include_router(
+    router,
+    prefix="/api/v1",
+    tags=["Emergency Triage"]
+)
+
+# -------------------------------------------------------------------
+# Root Health Check
+# -------------------------------------------------------------------
 
 @app.get("/")
 async def root():
-    """Root endpoint with system information"""
     return {
         "system": "Emergency Crisis Triage & Resource Allocation System",
         "version": "1.0.0",
         "status": "operational",
+        "mode": "demo-safe",
         "docs": "/docs",
         "api": "/api/v1"
     }
 
+# -------------------------------------------------------------------
+# Local Development Entry Point
+# -------------------------------------------------------------------
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app.main:app",
-        host=settings.api_host,
-        port=settings.api_port,
+        host="0.0.0.0",
+        port=8000,
         reload=settings.debug
     )
