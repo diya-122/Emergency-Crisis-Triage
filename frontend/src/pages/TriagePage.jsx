@@ -12,55 +12,12 @@ const TriagePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // 🔵 DEMO FALLBACK DATA
-  const demoResponse = {
-    request_id: `demo-${Date.now()}`,
-    urgency_level: 'CRITICAL',
-    urgency_score: 92,
-    explanation: [
-      'High-risk emergency language detected',
-      'Potential life-threatening situation',
-      'Vulnerable individuals may be involved',
-      'Immediate response required'
-    ],
-    extracted_info: {
-      need: 'Emergency medical / rescue assistance',
-      people_affected: 'Multiple',
-      location: 'Location inferred from message'
-    },
-    recommended_resources: [
-      'Nearest ambulance service',
-      'Emergency hospital within 5 km',
-      'Local disaster response NGO'
-    ],
-    demo_mode: true
-  };
-
   const triageMutation = useMutation({
-    mutationFn: async (payload) => {
-      try {
-        // Try real backend
-        return await triageAPI.processMessage(payload);
-      } catch (error) {
-        // 🟢 FALLBACK TO DEMO MODE
-        return demoResponse;
-      }
-    },
+    mutationFn: triageAPI.processMessage,
     onSuccess: (data) => {
-      // Save to localStorage (session triage log)
-      const history = JSON.parse(localStorage.getItem('triages')) || [];
-      const entry = {
-        timestamp: new Date().toLocaleString(),
-        data
-      };
-      localStorage.setItem(
-        'triages',
-        JSON.stringify([entry, ...history])
-      );
-
       queryClient.invalidateQueries(['requests']);
       navigate(`/requests/${data.request_id}`);
-    }
+    },
   });
 
   const handleSubmit = (e) => {
@@ -76,7 +33,7 @@ const TriagePage = () => {
       source,
       phone_number: phoneNumber || null,
       timestamp: new Date().toISOString(),
-      metadata: {}
+      metadata: {},
     });
   };
 
@@ -99,6 +56,10 @@ const TriagePage = () => {
     }
   ];
 
+  const loadExample = (exampleText) => {
+    setMessage(exampleText);
+  };
+
   return (
     <div className="triage-page">
       <div className="page-header">
@@ -108,29 +69,36 @@ const TriagePage = () => {
         <div>
           <h2>Emergency Message Triage</h2>
           <p className="page-description">
-            AI-assisted, explainable emergency decision support
+            Process unstructured emergency messages with AI-assisted analysis
           </p>
         </div>
       </div>
 
       <div className="triage-grid">
+        {/* Input Form */}
         <div className="triage-form-container">
           <form onSubmit={handleSubmit} className="triage-form">
             <div className="form-group">
-              <label>Emergency Message *</label>
+              <label htmlFor="message">Emergency Message *</label>
               <textarea
+                id="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                placeholder="Enter the unstructured emergency message here...&#10;&#10;The AI will extract and analyze:&#10;- What help is needed&#10;- Location information&#10;- Number of people affected&#10;- Urgency level&#10;- Vulnerable populations"
                 rows={12}
+                required
                 disabled={triageMutation.isPending}
               />
-              <div className="char-count">{message.length} characters</div>
+              <div className="char-count">
+                {message.length} characters
+              </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Message Source</label>
+                <label htmlFor="source">Message Source</label>
                 <select
+                  id="source"
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
                   disabled={triageMutation.isPending}
@@ -140,15 +108,18 @@ const TriagePage = () => {
                   <option value="chat">Chat</option>
                   <option value="phone">Phone</option>
                   <option value="email">Email</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Phone Number (Optional)</label>
+                <label htmlFor="phone">Phone Number (Optional)</label>
                 <input
                   type="tel"
+                  id="phone"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1234567890"
                   disabled={triageMutation.isPending}
                 />
               </div>
@@ -172,25 +143,47 @@ const TriagePage = () => {
               )}
             </button>
 
-            <small style={{ opacity: 0.6, marginTop: '8px', display: 'block' }}>
-              Demo mode enabled – backend integration simulated if unavailable
-            </small>
+            {triageMutation.isError && (
+              <div className="error-message">
+                <AlertCircle size={16} />
+                Error processing message: {triageMutation.error.message}
+              </div>
+            )}
           </form>
         </div>
 
+        {/* Examples Sidebar */}
         <div className="examples-container">
           <h3>Example Emergency Messages</h3>
+          <p className="examples-description">
+            Click an example to try the system:
+          </p>
+
           <div className="examples-list">
-            {exampleMessages.map((ex, i) => (
+            {exampleMessages.map((example, index) => (
               <div
-                key={i}
+                key={index}
                 className="example-card"
-                onClick={() => setMessage(ex.text)}
+                onClick={() => loadExample(example.text)}
               >
-                <div className="example-category">{ex.category}</div>
-                <div className="example-text">{ex.text}</div>
+                <div className="example-category">{example.category}</div>
+                <div className="example-text">{example.text}</div>
+                <button type="button" className="example-load-btn">
+                  Load Example
+                </button>
               </div>
             ))}
+          </div>
+
+          <div className="info-box">
+            <h4>How it works:</h4>
+            <ol>
+              <li>Enter or paste an emergency message</li>
+              <li>AI extracts structured information</li>
+              <li>Calculates explainable urgency score</li>
+              <li>Matches to available resources</li>
+              <li>Provides decision support for dispatcher</li>
+            </ol>
           </div>
         </div>
       </div>
