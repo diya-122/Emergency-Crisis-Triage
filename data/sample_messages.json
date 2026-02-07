@@ -1,0 +1,59 @@
+{
+  "example_messages": [
+    {
+      "message": "Help! Building collapse at 123 Main St. Multiple people trapped. Children and elderly present. Need rescue team urgently!",
+      "source": "sms",
+      "phone_number": "+1-555-0001",
+      "description": "Critical rescue situation with vulnerable populations"
+    },
+    {
+      "message": "Flood in downtown area near Central Park. About 50 families need evacuation. Water rising fast. Some elderly cannot move.",
+      "source": "social_media",
+      "description": "Mass evacuation with vulnerable population"
+    },
+    {
+      "message": "Medical emergency at Oak Street shelter. Woman in labor, no access to hospital. Need medical team immediately.",
+      "source": "sms",
+      "phone_number": "+1-555-0002",
+      "description": "Critical medical emergency"
+    },
+    {
+      "message": "Over 100 people at Community Center with no food or water for 2 days. Children are crying. Please send supplies.",
+      "source": "chat",
+      "description": "Supply shortage affecting large group including children"
+    },
+    {
+      "message": "Fire spreading at apartment building on 5th Ave. Many families trapped on upper floors. Lots of smoke. Help please!",
+      "source": "phone",
+      "phone_number": "+1-555-0003",
+      "description": "Life-threatening fire situation"
+    },
+    {
+      "message": "Elderly care home needs evacuation. Storm damaged building. 40 elderly residents, some wheelchair bound.",
+      "source": "email",
+      "description": "Vulnerable population requiring special care during evacuation"
+    },
+    {
+      "message": "Refugee camp at border needs medical supplies. Outbreak of illness. Children sick. Doctor here but no medicine.",
+      "source": "social_media",
+      "description": "Medical supply shortage in vulnerable population"
+    },
+    {
+      "message": "Heart attack victim at 789 Park Lane. Not breathing. Please hurry!!",
+      "source": "phone",
+      "phone_number": "+1-555-0004",
+      "description": "Critical medical emergency requiring immediate response"
+    },
+    {
+      "message": "School bus accident on Highway 10. About 30 children injured. Some serious. Need multiple ambulances now.",
+      "source": "sms",
+      "phone_number": "+1-555-0005",
+      "description": "Mass casualty incident with children"
+    },
+    {
+      "message": "Homeless shelter lost power and heat. Freezing cold. 80 people including pregnant woman and babies need warm place.",
+      "source": "chat",
+      "description": "Environmental emergency affecting vulnerable populations"
+    }
+  ]
+}
